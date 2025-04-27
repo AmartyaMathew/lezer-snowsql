@@ -4,7 +4,6 @@
 
 }
 
-
 @precedence {
 
   uminus @right,
@@ -35,6 +34,8 @@
 }
 
 
+
+
 Stmts {
 
   (Stmt (Smc+ Stmt)*)? Smc* 
@@ -44,7 +45,7 @@ Stmts {
 
 Stmt {
 
-  SelectStmt |
+  SelectStatement |
   DescribeStmt | 
   DropStmt |
   InsertStmt |
@@ -72,6 +73,109 @@ Stmt {
   AlterTaskStmt
 
 }
+
+
+
+
+SelectStatement {
+  CTEClause? Select SelectOption? SelectList FromClause? WhereClause? GroupByClause? HavingClause? OrderByClause? LimitClause?
+}
+
+CTEClause {
+  With CTEBinding ("," CTEBinding)*
+}
+
+CTEBinding {
+  Identifier As "(" SelectStatement ")"
+}
+
+SelectOption {
+  All | Distinct
+}
+
+SelectList {
+  SelectItem ("," SelectItem)*
+}
+
+SelectItem {
+  "*" | Expression (As Identifier)?
+}
+
+FromClause {
+  From TableReference (JoinClause)*
+}
+
+TableReference {
+  Identifier (As Identifier)?
+  | "(" SelectStatement ")" (As Identifier)?
+}
+
+JoinClause {
+  JoinType? Join TableReference On Expression
+}
+
+JoinType {
+  Inner | Left (Outer)? | Right (Outer)? | Full (Outer)? | Cross
+}
+
+WhereClause {
+  Where Expression
+}
+
+GroupByClause {
+  Group By Expression ("," Expression)*
+}
+
+HavingClause {
+  Having Expression
+}
+
+OrderByClause {
+  Order By OrderItem ("," OrderItem)*
+}
+
+OrderItem {
+  Expression (Asc | Desc)?
+}
+
+LimitClause {
+  Limit number
+}
+
+
+Expression {
+  PrimaryExpression (BinaryOperator PrimaryExpression)*
+}
+
+PrimaryExpression {
+  Value
+  | FunctionCall
+  | CaseExpression
+}
+
+Value {
+  Identifier
+  | Literal
+  | "(" Expression ")"
+}
+
+FunctionCall {
+  Identifier "(" (Expression ("," Expression)*)? ")"
+}
+
+CaseExpression {
+  Case (Expression)? WhenThenClause+ (Else Expression)? End
+}
+
+WhenThenClause {
+  When Expression Then Expression
+}
+
+BinaryOperator {
+  "=" | "<>" | "!=" | "<" | ">" | "<=" | ">=" | And | Or
+}
+
+Literal { number | QuotedString }
 
 
 DropStmt {
@@ -344,7 +448,7 @@ IntegrationTypes {
 }
 
 
-SelectStmt {
+SelectStmt2 {
 
   SelectDefinition |  //without parenthesis
   ParenSelect  //with parenthisis
@@ -411,14 +515,14 @@ ConnectByClause {
 }
 
 
-WhereClause {
+WhereClause2 {
       
   Where ScalarExpression
 
 }
 
 
-GroupByClause {
+GroupByClause2 {
       
   Group By GroupByExpression (Comma GroupByExpression)*
 
@@ -445,7 +549,7 @@ GroupingSet {
 }
 
 
-HavingClause {
+HavingClause2 {
 
   Having ScalarExpression
 
@@ -459,7 +563,7 @@ QualifyClause {
 }
 
 
-FromClause {
+FromClause2 {
 
   From FromExpression (Comma FromExpression)*
 
@@ -940,7 +1044,7 @@ ViewSpecification {
 
   ViewOutOfLineConstraints ViewOption* )?
 
-  As SelectStmt 
+  As SelectStmt2 
 
 }
 
@@ -2383,7 +2487,7 @@ FunctionOrderingClause {
 }
 
 
-OrderByClause {
+OrderByClause2 {
 
   Order By ColumnRefOrder (Comma ColumnRefOrder)*
 
@@ -2541,7 +2645,7 @@ CastExpression {
 }
 
 
-CaseExpression {
+CaseExpression2 {
 
   Case ScalarExpression? (When ScalarExpression Then ScalarExpression)+ (Else ScalarExpression)?  End
 
@@ -2555,7 +2659,7 @@ ExplicitRowConstructorExpression {
 }
 
 
-LimitClause {
+LimitClause2 {
 
   (Offset LimitBoundary (Row | Rows)?)?
   Fetch (First | Next)? LimitBoundary (Row | Rows)? Only? |
@@ -2584,7 +2688,7 @@ ConstantBoundary {
 
 QueryStatementExpression {
 
-  SelectStmt 
+  SelectStmt2 
   
 }
 
@@ -2623,7 +2727,7 @@ OdbcFunctionNameIdentifier {
 
 }
 
-FunctionCall {
+FunctionCall2 {
 
 
   ObjName Lparen DistinctAll? FunctionArgs? Rparen
@@ -2687,7 +2791,9 @@ FunctionNameIdentifier {
   LineComment { 
    ( "//" |  "--") ![\n]*  
   }
-
+  identifier { std.asciiLetter std.word* }
+  number { std.digit+ }
+  space { std.space+ }
 
   URLPathComponent {
 

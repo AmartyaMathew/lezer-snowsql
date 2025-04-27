@@ -78,7 +78,7 @@ Stmt {
 
 
 SelectStatement {
-  CTEClause? Select SelectOption? SelectList FromClause? WhereClause? GroupByClause? HavingClause? OrderByClause? LimitClause?
+  CTEClause? Select SelectOption? TopClause? SelectList IntoClause? FromClause? WhereClause? GroupByClause? HavingClause? QualifyClause? OrderByClause? LimitClause? ForUpdateClause?
 }
 
 CTEClause {
@@ -93,6 +93,19 @@ SelectOption {
   All | Distinct
 }
 
+TopClause {
+  Top number
+}
+
+IntoClause {
+  Into IntoVariable ("," IntoVariable)*
+}
+
+IntoVariable {
+  ":" Identifier
+}
+
+
 SelectList {
   SelectItem ("," SelectItem)*
 }
@@ -103,6 +116,25 @@ SelectItem {
 
 FromClause {
   From TableReference (JoinClause)*
+}
+
+FromModifiers {
+  AtClause | BeforeClause
+}
+
+AtClause {
+  At "(" AtOptions ")"
+}
+
+AtOptions {
+  ( Timestamp "=>" Expression
+  | Offset "=>" Expression
+  | Statement "=>" Expression
+  | Stream "=>" string )
+}
+
+BeforeClause {
+  Before "(" Statement "=>" Expression ")"
 }
 
 TableReference {
@@ -140,6 +172,10 @@ OrderItem {
 
 LimitClause {
   Limit number
+}
+
+ForUpdateClause {
+  For Update
 }
 
 
